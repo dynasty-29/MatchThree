@@ -18,7 +18,12 @@ public class Match3 : MonoBehaviour
     public AudioClip matchSound;
     public AudioClip noMatchSound;
     private AudioSource audioSource;
-    //
+
+    [Header("Timer")]
+    public TextMeshProUGUI timerText; // 
+    public float gameDuration = 120; // 
+    private float timer;
+    public int targetScore = 5000;
 
     [Header("UI Elements")]
     public Sprite[] pieces;
@@ -29,6 +34,12 @@ public class Match3 : MonoBehaviour
     [Header("Prefabs")]
     public GameObject nodePiece;
     public GameObject killedPiece;
+
+    [Header("End Game")]
+    public AudioClip winSound;
+    public AudioClip loseSound;
+    public TextMeshProUGUI endGameText; 
+
 
     int width = 9;
     int height = 14;
@@ -51,6 +62,11 @@ public class Match3 : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
         //
+
+        timer = gameDuration;
+        UpdateTimerText();
+        //
+        endGameText.gameObject.SetActive(false);
     }
     void Update()
     {
@@ -108,6 +124,46 @@ public class Match3 : MonoBehaviour
             flipped.Remove(flip);
             update.Remove(piece);
         }
+        if (timer > 0)
+        {
+            timer -= Time.deltaTime;
+            UpdateTimerText();
+
+            if (timer <= 0)
+            {
+                timer = 0;
+                EndGame();
+            }
+        }
+
+    }
+    void UpdateTimerText()
+    {
+        if (timerText != null)
+        {
+            timerText.text = "Time: " + Mathf.Max(timer, 0).ToString("0");
+        }
+    }
+
+    void EndGame()
+    {
+        // Stop any additional game actions
+        enabled = false;
+
+        // Check the score and determine win/lose
+        if (score >= targetScore)
+        {
+            PlaySound(winSound);
+            endGameText.text = "Congratulations! You Win!";
+            Debug.Log("You win!");
+        }
+        else
+        {
+            PlaySound(loseSound);
+            endGameText.text = "Game Over! You Lose!";
+            Debug.Log("You lose!");
+        }
+        endGameText.gameObject.SetActive(true);
     }
     void ApplyGravityToBoard()
     {
@@ -308,6 +364,7 @@ public class Match3 : MonoBehaviour
         else
             ResetPiece(pieceOne);
     }
+
     List<Point> isConnected(Point p, bool main)
     {
         List<Point> connected = new List<Point>();
@@ -454,6 +511,7 @@ public class Match3 : MonoBehaviour
     {
         return new Vector2(32 + (64 * p.x), - 32 - (64 * p.y));
     }
+
 }
 
 [System.Serializable]
